@@ -10,3 +10,42 @@ updatedAt: 2026-11-22
 ## 概要
 
 OAuth 2.0 は「認証（Authentication）」ではなく**「認可（Authorization）」**の仕組みです。
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor User as ユーザー
+  participant Client as クライアントアプリ
+  participant AuthZ as 認可サーバー
+  participant Resource as リソースサーバー
+
+  User->>Client: サービス連携を開始
+  Client->>AuthZ: 認可リクエスト (client_id, state, code_challenge)
+  AuthZ->>User: ログイン・同意画面を表示
+  User->>AuthZ: 認証・アクセス許可
+  AuthZ-->>Client: 認可コード (code, state) をリダイレクト返却
+  Client->>AuthZ: トークンリクエスト (code, code_verifier)
+  AuthZ-->>Client: アクセストークン発行
+  Client->>Resource: APIリクエスト (Bearer トークン)
+  Resource-->>Client: 保護されたデータを返却
+```
+
+```mermaid
+flowchart LR
+  Internet((インターネット)) <--> FW1[外部ファイアウォール]
+  FW1 <--> DMZ
+
+  subgraph DMZ [DMZ セグメント]
+    Proxy[リバースプロキシ / WAF]
+    Mail[メール中継サーバー]
+  end
+
+  DMZ <--> FW2[内部ファイアウォール]
+  FW2 <--> Internal
+
+  subgraph Internal [社内ネットワーク]
+    App[業務APサーバー]
+    DB[(データベース)]
+    App <--> DB
+  end
+```

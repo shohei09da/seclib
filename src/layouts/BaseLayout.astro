@@ -31,5 +31,44 @@ const { title } = Astro.props;
     <main class="mx-auto max-w-4xl px-4 py-8">
       <slot />
     </main>
+
+    <script>
+      async function renderMermaid() {
+        const targets = document.querySelectorAll<HTMLElement>(
+          'pre.mermaid, pre > code.language-mermaid, pre[data-language="mermaid"] > code'
+        );
+        if (targets.length === 0) return;
+
+        const { default: mermaid } = await import('mermaid');
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: 'neutral',
+          securityLevel: 'strict',
+        });
+
+        let index = 0;
+        for (const el of targets) {
+          const pre = el.tagName === 'PRE' ? el : el.parentElement;
+          if (!pre || pre.dataset.mermaidProcessed) continue;
+          pre.dataset.mermaidProcessed = 'true';
+
+          const graphDefinition = (el.textContent ?? '').trim();
+          if (!graphDefinition) continue;
+
+          try {
+            const { svg } = await mermaid.render(`mermaid-graph-${index++}`, graphDefinition);
+            const wrapper = document.createElement('div');
+            wrapper.className = 'mermaid';
+            wrapper.innerHTML = svg;
+            pre.replaceWith(wrapper);
+          } catch (err) {
+            console.error('Mermaid render error:', err);
+          }
+        }
+      }
+
+      renderMermaid();
+      document.addEventListener('astro:page-load', renderMermaid);
+    </script>
   </body>
 </html>
