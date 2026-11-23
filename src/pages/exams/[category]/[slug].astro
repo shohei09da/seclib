@@ -1,0 +1,55 @@
+---
+// src/pages/exams/[category]/[slug].astro
+import { getCollection, getEntries, render } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const examEntries = await getCollection('exams', ({ data }) => {
+    return import.meta.env.DEV || !data.draft;
+  });
+
+  return examEntries.map((entry) => ({
+    params: { category: entry.data.examType, slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const glossaryItems = await getEntries(entry.data.relatedGlossary);
+---
+
+<BaseLayout title={entry.data.title}>
+  <article class="rounded-lg border border-slate-200 bg-white p-6 shadow-xs md:p-8">
+    <div class="mb-3 flex flex-wrap items-center gap-2 text-xs">
+      <span class="rounded bg-indigo-50 px-2 py-1 font-bold uppercase text-indigo-700">
+        {entry.data.examType} / {entry.data.examYear}
+      </span>
+      {entry.data.themeTags.map((tag) => (
+        <span class="rounded bg-slate-100 px-2 py-1 text-slate-600">#{tag}</span>
+      ))}
+    </div>
+
+    <h1 class="mb-6 text-2xl font-bold text-slate-900">{entry.data.title}</h1>
+
+    {glossaryItems.length > 0 && (
+      <div class="mb-6 rounded bg-slate-50 p-4">
+        <p class="mb-2 text-xs font-semibold text-slate-500">前提となるセキュリティ用語：</p>
+        <div class="flex flex-wrap gap-2">
+          {glossaryItems.map((term) => (
+            <a
+              href={`/glossary/${term.id}`}
+              class="rounded-full border border-sky-200 bg-white px-3 py-1 text-xs font-medium text-sky-700 hover:bg-sky-50"
+            >
+              {term.data.title}
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
+
+    <div class="article-body">
+      <Content />
+    </div>
+  </article>
+</BaseLayout>

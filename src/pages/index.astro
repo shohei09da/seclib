@@ -1,11 +1,56 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+// src/pages/index.astro
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const glossary = await getCollection('glossary');
+const exams = await getCollection('exams');
+const topics = await getCollection('topics');
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<BaseLayout title="セキュリティ知識体系ライブラリ">
+  <div class="space-y-8">
+    <section>
+      <h2 class="mb-3 text-lg font-bold text-slate-900">セキュリティ用語集</h2>
+      <ul class="space-y-2 rounded-lg border border-slate-200 bg-white p-4">
+        {glossary.map((item) => (
+          <li>
+            <a href={`/glossary/${item.id}`} class="font-medium text-sky-700 hover:underline">
+              {item.data.title}
+            </a>
+            <span class="ml-2 text-xs text-slate-500">- {item.data.summary}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="mb-3 text-lg font-bold text-slate-900">IPA試験 解説</h2>
+      <ul class="space-y-2 rounded-lg border border-slate-200 bg-white p-4">
+        {exams.map((item) => (
+          <li>
+            <a
+              href={`/exams/${item.data.examType}/${item.id}`}
+              class="font-medium text-sky-700 hover:underline"
+            >
+              [{item.data.examType.toUpperCase()}] {item.data.title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="mb-3 text-lg font-bold text-slate-900">トピックス・書籍紹介</h2>
+      <ul class="space-y-2 rounded-lg border border-slate-200 bg-white p-4">
+        {topics.map((item) => (
+          <li>
+            <a href={`/topics/${item.id}`} class="font-medium text-sky-700 hover:underline">
+              [{item.data.topicType}] {item.data.title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </div>
+</BaseLayout>

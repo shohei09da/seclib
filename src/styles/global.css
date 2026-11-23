@@ -1,0 +1,23 @@
+/* src/styles/global.css */
+@import "tailwindcss";
+
+.article-body h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.article-body p {
+  line-height: 1.8;
+  margin-bottom: 1rem;
+}
+
+.article-body code {
+  background-color: #f1f5f9;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.9em;
+}

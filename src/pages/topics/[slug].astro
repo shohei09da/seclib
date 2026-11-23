@@ -1,0 +1,59 @@
+---
+// src/pages/topics/[slug].astro
+import { getCollection, getEntries, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const topicEntries = await getCollection('topics', ({ data }) => {
+    return import.meta.env.DEV || !data.draft;
+  });
+
+  return topicEntries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const glossaryItems = await getEntries(entry.data.relatedGlossary);
+---
+
+<BaseLayout title={entry.data.title}>
+  <article class="rounded-lg border border-slate-200 bg-white p-6 shadow-xs md:p-8">
+    <div class="mb-3 text-xs font-semibold uppercase text-emerald-700">
+      <span class="rounded bg-emerald-50 px-2 py-1">{entry.data.topicType}</span>
+    </div>
+
+    <h1 class="mb-4 text-2xl font-bold text-slate-900">{entry.data.title}</h1>
+
+    {entry.data.bookInfo && (
+      <div class="mb-6 rounded border border-amber-200 bg-amber-50/50 p-4 text-sm text-slate-700">
+        <p><strong>著者：</strong>{entry.data.bookInfo.author}</p>
+        {entry.data.bookInfo.publisher && (
+          <p><strong>出版社：</strong>{entry.data.bookInfo.publisher}</p>
+        )}
+      </div>
+    )}
+
+    {glossaryItems.length > 0 && (
+      <div class="mb-6 rounded bg-slate-50 p-4">
+        <p class="mb-2 text-xs font-semibold text-slate-500">関連する用語解説：</p>
+        <div class="flex flex-wrap gap-2">
+          {glossaryItems.map((term) => (
+            <a
+              href={`/glossary/${term.id}`}
+              class="rounded-full border border-sky-200 bg-white px-3 py-1 text-xs font-medium text-sky-700 hover:bg-sky-50"
+            >
+              {term.data.title}
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
+
+    <div class="article-body">
+      <Content />
+    </div>
+  </article>
+</BaseLayout>

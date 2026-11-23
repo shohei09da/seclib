@@ -1,0 +1,89 @@
+---
+// src/pages/glossary/[slug].astro
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const glossaryEntries = await getCollection('glossary', ({ data }) => {
+    return import.meta.env.DEV || !data.draft;
+  });
+
+  return glossaryEntries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+
+// この用語を relatedGlossary に指定している試験・トピック記事を逆引き取得
+const relatedExams = await getCollection('exams', ({ data }) =>
+  (import.meta.env.DEV || !data.draft) &&
+  data.relatedGlossary.some((ref) => ref.id === entry.id)
+);
+
+const relatedTopics = await getCollection('topics', ({ data }) =>
+  (import.meta.env.DEV || !data.draft) &&
+  data.relatedGlossary.some((ref) => ref.id === entry.id)
+);
+---
+
+<BaseLayout title={entry.data.title}>
+  <article class="rounded-lg border border-slate-200 bg-white p-6 shadow-xs md:p-8">
+    <div class="mb-4 flex items-center gap-2 text-xs font-semibold uppercase text-sky-700">
+      <span class="rounded bg-sky-50 px-2 py-1">用語解説 / {entry.data.category}</span>
+    </div>
+    <h1 class="mb-3 text-2xl font-bold text-slate-900 md:text-3xl">{entry.data.title}</h1>
+    <p class="mb-6 rounded border-l-4 border-sky-500 bg-slate-50 p-4 text-sm text-slate-700">
+      {entry.data.summary}
+    </p>
+
+    <div class="article-body">
+      <Content />
+    </div>
+  </article>
+
+  {/* 逆引きセクション */}
+  {(relatedExams.length > 0 || relatedTopics.length > 0) && (
+    <section class="mt-8 rounded-lg border border-slate-200 bg-white p-6">
+      <h2 class="mb-4 text-lg font-bold text-slate-900">この用語に関連する記事</h2>
+
+      {relatedExams.length > 0 && (
+        <div class="mb-4">
+          <h3 class="mb-2 text-sm font-semibold text-slate-500">IPA試験 解説</h3>
+          <ul class="space-y-2">
+            {relatedExams.map((exam) => (
+              <li>
+                <a
+                  href={`/exams/${exam.data.examType}/${exam.id}`}
+                  class="text-sky-700 underline hover:text-sky-900"
+                >
+                  [{exam.data.examType.toUpperCase()}] {exam.data.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {relatedTopics.length > 0 && (
+        <div>
+          <h3 class="mb-2 text-sm font-semibold text-slate-500">トピックス・書籍</h3>
+          <ul class="space-y-2">
+            {relatedTopics.map((topic) => (
+              <li>
+                <a
+                  href={`/topics/${topic.id}`}
+                  class="text-sky-700 underline hover:text-sky-900"
+                >
+                  [{topic.data.topicType}] {topic.data.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  )}
+</BaseLayout>
