@@ -1,0 +1,40 @@
+---
+// src/components/Callout.astro
+interface Props {
+  type?: 'point' | 'warning' | 'info';
+  title?: string;
+}
+
+const { type = 'info', title } = Astro.props;
+
+const styles = {
+  point: {
+    wrapper: 'border-sky-500 bg-sky-50/70 text-slate-800',
+    titleColor: 'text-sky-800',
+    defaultTitle: '重要ポイント',
+    icon: '💡',
+  },
+  warning: {
+    wrapper: 'border-amber-500 bg-amber-50/70 text-slate-800',
+    titleColor: 'text-amber-900',
+    defaultTitle: 'セキュリティ上の注意点',
+    icon: '⚠️',
+  },
+  info: {
+    wrapper: 'border-slate-400 bg-slate-100/80 text-slate-800',
+    titleColor: 'text-slate-900',
+    defaultTitle: '補足メモ',
+    icon: '📌',
+  },
+}[type];
+---
+
+<aside class={`not-prose my-6 rounded-r-lg border-l-4 p-4 text-sm leading-relaxed ${styles.wrapper}`}>
+  <p class={`mb-1.5 flex items-center gap-1.5 font-bold ${styles.titleColor}`}>
+    <span>{styles.icon}</span>
+    <span>{title ?? styles.defaultTitle}</span>
+  </p>
+  <div class="space-y-2 [&>p:last-child]:mb-0">
+    <slot />
+  </div>
+</aside>
